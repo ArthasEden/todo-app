@@ -11,11 +11,13 @@ type EDTO struct {
 	Message   string
 }
 
-func eDTOnew(message string) *EDTO {
-	return &EDTO{
+func ErrDTO(message error) string {
+	eDTO := EDTO{
 		CreatedAt: time.Now(),
-		Message:   message,
+		Message:   message.Error(),
 	}
+
+	return eDTO.ToString()
 }
 
 func (e *EDTO) ToString() string {

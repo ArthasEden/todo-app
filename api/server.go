@@ -26,7 +26,7 @@ func (s *Server) Run() error {
 	r := mux.NewRouter()
 
 	r.Path(tasks).Methods("POST").HandlerFunc(s.handlers.Post)
-	r.Path(tasks).Methods("GET").HandlerFunc(s.handlers.GetAll)
+	r.Path(tasks).Methods("GET").HandlerFunc(s.handlers.Get)
 	r.Path(tasksTitle).Methods("PATCH").HandlerFunc(s.handlers.Patch)
 	r.Path(tasksTitle).Methods("DELETE").HandlerFunc(s.handlers.Delete)
 

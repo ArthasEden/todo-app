@@ -11,11 +11,12 @@ import (
 
 func (h *Handler) Patch(w http.ResponseWriter, r *http.Request) {
 	var (
-		title  = mux.Vars(r)["title"]
-		status = r.URL.Query().Get("completed")
-		err    error
-		task   service.Task
+		err  error
+		task service.Task
 	)
+
+	title := mux.Vars(r)["title"]
+	status := r.URL.Query().Get("completed")
 
 	switch status {
 	case "true":

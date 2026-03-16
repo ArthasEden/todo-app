@@ -1,4 +1,4 @@
-package simpleconnection
+package simple_connection
 
 import (
 	"context"

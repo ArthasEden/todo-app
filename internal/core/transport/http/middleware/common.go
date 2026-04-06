@@ -58,6 +58,7 @@ func Panic() Middleware {
 					responseHandler.PanicResponse(p, "during handle HTTP request got unexpected panic")
 				}
 			}()
+
 			next.ServeHTTP(w, r)
 		})
 	}

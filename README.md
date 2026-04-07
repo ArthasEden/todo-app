@@ -57,15 +57,15 @@ RoadMap:
 
     2.1 Создаём Логгер 
         2.1.1 Создаём директорию internal/core/logger.go
-        2.1.2 Создаём структуру конфига для логгера, функцию-констурктор (lib: envconfig) и функцию "NewConfigMust"
-        2.1.3 Создаём структуру логгера, функцию-констурктор и метод закрытия файла
-        2.1.4 Создаём метод With, который будет отдавать наш собственный логгер
+            2.1.2 Создаём структуру конфига для логгера, функцию-констурктор (lib: envconfig) и функцию "NewConfigMust"
+            2.1.3 Создаём структуру логгера, функцию-констурктор и метод закрытия файла
+            2.1.4 Создаём метод With, который будет отдавать наш собственный логгер
     
     2.2. Создаём MiddleWare
         2.2.1 Создаём директорию transport/http/middleware/middleware.go
-        2.2.2 Создаём аллиас "Middleware" который является func(http.Handler) http.Handler
+            2.2.2 Создаём аллиас "Middleware" который является func(http.Handler) http.Handler
         2.2.3 Создаём директорию transport/http/middleware/common.go
-        2.2.4 Создаём RequestID() Middleware
-        2.2.5 Создаём Logger() Middleware
-        2.2.5 Создаём Panic() Middleware
+            2.2.4 Создаём RequestID() Middleware
+            2.2.5 Создаём Logger() Middleware
+            2.2.5 Создаём Panic() Middleware
 

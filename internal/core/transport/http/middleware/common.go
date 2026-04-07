@@ -3,6 +3,7 @@ package core_http_middleware
 import (
 	"context"
 	"net/http"
+	"time"
 
 	core_logger "github.com/ArthasEden/todo-app/internal/core/logger"
 	core_http_response "github.com/ArthasEden/todo-app/internal/core/transport/http/response"
@@ -49,8 +50,7 @@ func Logger(log *core_logger.Logger) Middleware {
 func Panic() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			log := core_logger.FromContext(ctx)
+			log := core_logger.FromContext(r.Context())
 			responseHandler := core_http_response.NewHTTPResponseHandler(log, w)
 
 			defer func() {
@@ -60,6 +60,29 @@ func Panic() Middleware {
 			}()
 
 			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func Trace() Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log := core_logger.FromContext(r.Context())
+			rw := core_http_response.NewResponseWriter(w)
+			before := time.Now()
+
+			log.Debug(
+				">>> incoming HTTP request",
+				zap.Time("time", before.UTC()),
+			)
+
+			next.ServeHTTP(rw, r)
+
+			log.Debug(
+				">>> done HTTP request",
+				zap.Int("status_code", rw.GetStatusCodeOrPanic()),
+				zap.Duration("latency", time.Since(before)),
+			)
 		})
 	}
 }

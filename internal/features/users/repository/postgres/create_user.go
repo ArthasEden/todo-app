@@ -7,6 +7,8 @@ import (
 	"github.com/ArthasEden/todo-app/internal/core/domain"
 )
 
+// SaveUser вставляет нового пользователя в БД и возвращает сохранённую версию.
+// RETURNING позволяет получить итоговое состояние записи одним запросом.
 func (r *UsersRepository) CreateUser(ctx context.Context, user domain.User) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()

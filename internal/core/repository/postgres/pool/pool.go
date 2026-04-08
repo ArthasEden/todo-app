@@ -10,6 +10,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Pool — интерфейс пула соединений с базой данных.
+// Конкретная реализация — в пакете pgx (internal/core/repository/postgres/pool/pgx).
+//
+// OpTimeout() возвращает максимальное время выполнения одного запроса к БД.
 type Pool interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
@@ -18,11 +22,20 @@ type Pool interface {
 	OpTimeout() time.Duration
 }
 
+// Pool — конкретная реализация интерфейса core_postgres_pool.Pool
+// на базе pgxpool.Pool (пул соединений pgx).
+//
+// Встраивание *pgxpool.Pool даёт доступ ко всем методам pgx,
+// но мы переопределяем Query/QueryRow/Exec, чтобы:
+//  1. Оборачивать результаты в наши интерфейсы (Rows, Row, CommandTag)
+//  2. Скрывать зависимость от pgx от слоя репозиториев
 type ConnectionPool struct {
 	*pgxpool.Pool
 	opTimeout time.Duration
 }
 
+// NewPool создаёт и проверяет пул соединений с PostgreSQL.
+// Ping() при инициализации гарантирует, что БД доступна до начала работы сервера.
 func NewConnectionPool(ctx context.Context, config Config) (*ConnectionPool, error) {
 	connStr := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
@@ -43,6 +56,7 @@ func NewConnectionPool(ctx context.Context, config Config) (*ConnectionPool, err
 		return nil, fmt.Errorf("create pgxpool: %w", err)
 	}
 
+	// Проверяем доступность БД сразу при старте.
 	if err := pool.Ping(ctx); err != nil {
 		return nil, fmt.Errorf("pgxpool ping: %w", err)
 	}
@@ -53,6 +67,7 @@ func NewConnectionPool(ctx context.Context, config Config) (*ConnectionPool, err
 	}, nil
 }
 
+// OpTimeout возвращает максимальное время выполнения одного запроса.
 func (p *ConnectionPool) OpTimeout() time.Duration {
 	return p.opTimeout
 }

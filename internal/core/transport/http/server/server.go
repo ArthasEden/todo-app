@@ -11,13 +11,21 @@ import (
 	"go.uber.org/zap"
 )
 
+// HTTPServer — обёртка над стандартным net/http, добавляющая:
+//   - Поддержку версионирования API через APIVersionRouter
+//   - Цепочку middleware для всех маршрутов
+//   - Swagger UI
+//   - Graceful shutdown
 type HTTPServer struct {
-	mux        *http.ServeMux
-	config     Config
-	log        *core_logger.Logger
+	mux    *http.ServeMux
+	config Config
+	log    *core_logger.Logger
+
+	// middleware применяются ко всем маршрутам сервера (глобальные middleware).
 	middleware []core_http_middleware.Middleware
 }
 
+// NewHTTPServer создаёт HTTP-сервер с заданными глобальными middleware.
 func NewHTTPServer(config Config, log *core_logger.Logger, middleware ...core_http_middleware.Middleware) *HTTPServer {
 	return &HTTPServer{
 		mux:        http.NewServeMux(),
@@ -27,31 +35,57 @@ func NewHTTPServer(config Config, log *core_logger.Logger, middleware ...core_ht
 	}
 }
 
-func (h *HTTPServer) RegisterAPIRoutes(routes ...APIVersionRouter) {
-	for _, router := range routes {
-		prefix := "/api/" + string(router.APIVersion)
+// RegisterAPIRouters регистрирует версионированные роутеры API в ServeMux.
+// Каждый роутер добавляет маршруты вида "{METHOD} /api/v{N}/{path}".
+func (s *HTTPServer) RegisterAPIRouters(routers ...*APIVersionRouter) {
+	for _, router := range routers {
+		handlers := router.Handlers()
 
-		h.mux.Handle(prefix+"/", http.StripPrefix(prefix, router))
+		for path, handler := range handlers {
+			s.mux.Handle(path, handler)
+		}
 	}
 }
 
-func (h *HTTPServer) Run(ctx context.Context) error {
-	mux := core_http_middleware.ChainMiddleware(h.mux, h.middleware...)
+// RegisterRoutes регистрирует маршруты без версионного префикса (например, главная страница "/").
+func (s *HTTPServer) RegisterRoutes(routes ...Route) {
+	for _, route := range routes {
+		path := route.Method + " " + route.Path
+		handler := route.WithMiddleware()
+
+		s.mux.Handle(path, handler)
+	}
+}
+
+// Run запускает HTTP-сервер и блокирует выполнение до получения сигнала завершения.
+//
+// Graceful shutdown:
+//  1. При отмене ctx (SIGINT/SIGTERM) вызывается server.Shutdown()
+//  2. Shutdown ждёт завершения активных HTTP обработчиков до ShutdownTimeout
+//  3. По истечении таймаута принудительно закрывает соединения через server.Close()
+//
+// Канал ch используется для передачи ошибки из горутины в основной поток.
+func (s *HTTPServer) Run(ctx context.Context) error {
+	// Применяем глобальные middleware к ServeMux.
+	mux := core_http_middleware.ChainMiddleware(s.mux, s.middleware...)
 
 	server := &http.Server{
-		Addr:    h.config.Addr,
+		Addr:    s.config.Addr,
 		Handler: mux,
 	}
 
+	// Буферизированный канал (размер 1), чтобы горутина не заблокировалась
+	// при отправке ошибки, если основной поток уже ушёл в select.
 	ch := make(chan error, 1)
 
 	go func() {
 		defer close(ch)
 
-		h.log.Warn("start HTTP server", zap.String("addr", h.config.Addr))
+		s.log.Warn("start HTTP server", zap.String("addr", s.config.Addr))
 
 		err := server.ListenAndServe()
 
+		// http.ErrServerClosed — нормальное завершение после Shutdown(), не ошибка.
 		if !errors.Is(err, http.ErrServerClosed) {
 			ch <- err
 		}
@@ -59,25 +93,28 @@ func (h *HTTPServer) Run(ctx context.Context) error {
 
 	select {
 	case err := <-ch:
+		// HTTP сервер завершился из-за ошибки (например, порт занят).
 		if err != nil {
 			return fmt.Errorf("listen and server HTTP: %w", err)
 		}
 	case <-ctx.Done():
-		h.log.Warn("shutdown HTTP server...")
+		// Получен сигнал завершения — выполняем graceful shutdown.
+		s.log.Warn("shutdown HTTP server...")
 
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(),
-			h.config.ShutdownTimeout,
+			s.config.ShutdownTimeout,
 		)
 		defer cancel()
 
 		if err := server.Shutdown(shutdownCtx); err != nil {
+			// Если graceful shutdown не успел — принудительно закрываем.
 			_ = server.Close()
 
 			return fmt.Errorf("shutdown HTTP server: %w", err)
 		}
 
-		h.log.Warn("HTTP server stoped")
+		s.log.Warn("HTTP server stopped")
 	}
 
 	return nil

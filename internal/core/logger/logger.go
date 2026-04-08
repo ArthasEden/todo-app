@@ -1,3 +1,9 @@
+// Package core_logger предоставляет структурированный логгер на базе go.uber.org/zap.
+// Логи пишутся одновременно в stdout и в файл.
+//
+// Логгер передаётся через context.Context (паттерн «logger in context»),
+// что позволяет автоматически добавлять к каждому сообщению
+// request_id и другие поля, установленные в middleware.
 package core_logger
 
 import (
@@ -11,16 +17,34 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Logger — обёртка над zap.Logger
-// Встраиваем zap.Logger, чтобы использовать его методы напрямую (Info, Error и т.д.)
-// + храним файл, чтобы корректно закрыть его при завершении приложения
+// loggerContextKey — приватный тип ключа для context.WithValue.
+// Использование отдельного типа (а не string) исключает коллизии ключей
+// с другими пакетами, которые тоже хранят данные в контексте.
+type loggerContextKey struct{}
+
+var (
+	key = loggerContextKey{}
+)
+
+// Logger — обёртка над *zap.Logger, которая дополнительно хранит
+// файловый дескриптор для корректного закрытия при завершении приложения.
 type Logger struct {
 	*zap.Logger
-	file *os.File // файл, в который пишутся логи
+
+	file *os.File
 }
 
+// ToContext кладёт логгер в контекст. Вызывается в middleware Logger,
+// чтобы все последующие обработчики могли получить логгер с request_id.
+func ToContext(ctx context.Context, log *Logger) context.Context {
+	return context.WithValue(ctx, key, log)
+}
+
+// FromContext извлекает логгер из контекста.
+// Паникует, если логгер не был добавлен — это программная ошибка,
+// означающая, что middleware Logger не был подключён.
 func FromContext(ctx context.Context) *Logger {
-	log, ok := ctx.Value("log").(*Logger)
+	log, ok := ctx.Value(key).(*Logger)
 	if !ok {
 		panic("no logger in context")
 	}
@@ -28,7 +52,11 @@ func FromContext(ctx context.Context) *Logger {
 	return log
 }
 
-// NewLogger — создаёт и настраивает логгер
+// NewLogger создаёт логгер, который пишет в stdout и в файл одновременно.
+// Каждый запуск создаёт новый лог-файл с именем вида "2006-01-02T15-04-05.000000.log".
+//
+// zapcore.NewTee объединяет несколько «ядер» (outputs) в одно:
+// запись в одно ядро — автоматически запись во все.
 func NewLogger(config Config) (*Logger, error) {
 
 	///////////////////////////////////////////////////////////////
@@ -108,6 +136,9 @@ func NewLogger(config Config) (*Logger, error) {
 	}, nil
 }
 
+// With создаёт дочерний логгер с дополнительными полями.
+// Переопределяем метод, чтобы возвращать *core_logger.Logger (с файлом),
+// а не базовый *zap.Logger.
 func (l *Logger) With(fields ...zap.Field) *Logger {
 	return &Logger{
 		Logger: l.Logger.With(fields...),
@@ -115,8 +146,7 @@ func (l *Logger) With(fields ...zap.Field) *Logger {
 	}
 }
 
-// Close — закрывает файл логов
-// Важно вызывать при завершении приложения
+// Close закрывает файл логов. Должен вызываться через defer в main().
 func (l *Logger) Close() {
 	if err := l.file.Close(); err != nil {
 		fmt.Println("failed to close application logger:", err)

@@ -4,8 +4,8 @@ export
 export PROJECT_ROOT=${shell pwd}
 
 env-up:
-	@docker compose up -d todoapp-postgres
-	sleep 2
+	@docker compose up -d todoapp-postgres; \
+	sleep 2; \
 	sudo chmod -R 777 ~/projects/todo-app/out/
 
 env-down:

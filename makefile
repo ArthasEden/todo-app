@@ -18,7 +18,6 @@ db-acl:
 # Остановить и удалить контейнер PostgreSQL и очистить volumes
 db-clean:
 	@make db-down && sudo rm -rf ./out/pgdata
-
 # Создать новую SQL-миграцию
 # Пример: make db-migrate-create seq=init
 db-migrate-create:
@@ -55,11 +54,15 @@ db-migrate-force:
 		-path /migrations \
 		-database "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@svc-db:5432/${POSTGRES_DB}?sslmode=disable" \
 		force $(version)
+		
 # Подключаем порт 5432 для доступа к БД
 # Создаём контенер с сервисом Socat
-db-port-on:
+db-port-up:
 	@docker compose up -d svc-db-port
 
 # Удаляем контенер с сервисом Socat
-db-port-off:
+db-port-down:
 	@docker compose down svc-db-port
+
+run:
+	@go run cmd/main.go

@@ -1,20 +1,21 @@
-package core_logger
+package core_http_server
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
-	Level  string `envconfig:"LEVEL"  required:"true"`
-	Folder string `envconfig:"FOLDER" required:"true"`
+	Addr            string        `envconfig:"ADDR" required:"true"`
+	ShutdownTimeout time.Duration `envconfig:"SHUTDOWN_TIMEOUT" required:"true"`
 }
 
 func NewConfig() (Config, error) {
 	var config Config
 
-	if err := envconfig.Process("LOGGER", &config); err != nil {
+	if err := envconfig.Process("HTTP", &config); err != nil {
 		return Config{}, fmt.Errorf("process envconfig: %w", err)
 	}
 
@@ -24,7 +25,7 @@ func NewConfig() (Config, error) {
 func NewConfigMust() Config {
 	config, err := NewConfig()
 	if err != nil {
-		err = fmt.Errorf("get logger config: %w", err)
+		err = fmt.Errorf("get HTTP server config: %w", err)
 		panic(err)
 	}
 

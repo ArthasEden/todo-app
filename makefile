@@ -12,8 +12,8 @@ db-down:
 	@docker compose down svc-postgres
 
 # Выдать права текущему пользователю на просмотр и изменение содержимого volume
-db-acl:
-	@sudo setfacl -R -m u:$(USER):rwx ./out/pgdata
+out-access:
+	@sudo setfacl -R -m u:$(USER):rwx ./out
 
 # Остановить и удалить контейнер PostgreSQL и очистить volumes
 db-clean:
@@ -65,4 +65,6 @@ db-port-down:
 	@docker compose down svc-db-port
 
 run:
-	@go run cmd/main.go
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	go mod tidy && \
+	go run cmd/main.go

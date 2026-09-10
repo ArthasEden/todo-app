@@ -55,6 +55,10 @@ func (h *HTTPResponseHandler) ErrorResponse(err error, msg string) {
 	h.errorResponse(statusCode, err, msg)
 }
 
+func (h *HTTPResponseHandler) NoContentReponse() {
+	h.w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *HTTPResponseHandler) PanicResponse(p any, msg string) {
 	statusCode := http.StatusInternalServerError
 	err := fmt.Errorf("unexpected panic: %v", p)

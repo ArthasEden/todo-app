@@ -3,6 +3,7 @@ package users_service
 import (
 	"context"
 	"fmt"
+	"uuid"
 
 	"github.com/ArthasEden/todo-app/internal/core/domain"
 )
@@ -15,9 +16,11 @@ func (s *UserService) CreateUser(
 		return domain.User{}, fmt.Errorf("Validate user domain: %w", err)
 	}
 
+	user.ID = uuid.New()
+
 	user, err := s.userRepository.CreateUser(ctx, user)
 	if err != nil {
-		return domain.User{}, fmt.Errorf("create user: %w", err)
+		return domain.User{}, fmt.Errorf("create user from repository: %w", err)
 	}
 
 	return user, nil

@@ -16,12 +16,12 @@ func (r *UsersRepository) CreateUser(
 	var userModel UserModel
 
 	query := `
-	INSERT INTO todoapp.users (full_name, phone_number)
-	VALUES ($1, $2)
+	INSERT INTO todoapp.users (id, full_name, phone_number)
+	VALUES ($1, $2, $3)
 	RETURNING id, version, full_name, phone_number;
 	`
 
-	row := r.pool.QueryRow(ctx, query, user.FullName, user.PhoneNumber)
+	row := r.pool.QueryRow(ctx, query, user.ID, user.FullName, user.PhoneNumber)
 	if err := row.Scan(
 		&userModel.ID,
 		&userModel.Version,

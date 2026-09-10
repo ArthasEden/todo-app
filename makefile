@@ -9,7 +9,7 @@ db-up:
 
 # Остановить и удалить контейнер PostgreSQL
 db-down:
-	@docker compose down svc-postgres
+	@docker compose down svc-db
 
 # Выдать права текущему пользователю на просмотр и изменение содержимого volume
 out-access:
@@ -17,7 +17,7 @@ out-access:
 
 # Остановить и удалить контейнер PostgreSQL и очистить volumes
 db-clean:
-	@make db-down && sudo rm -rf ./out/pgdata
+	@make db-down && docker compose down svc-db-port && sudo rm -rf ./out/pgdata
 # Создать новую SQL-миграцию
 # Пример: make db-migrate-create seq=init
 db-migrate-create:
@@ -67,4 +67,4 @@ db-port-down:
 run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
 	go mod tidy && \
-	go run cmd/main.go
+	go run cmd/main.go -d

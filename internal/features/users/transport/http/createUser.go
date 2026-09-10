@@ -2,7 +2,6 @@ package users_transport_http
 
 import (
 	"net/http"
-	"uuid"
 
 	"github.com/ArthasEden/todo-app/internal/core/domain"
 	core_logger "github.com/ArthasEden/todo-app/internal/core/logger"
@@ -15,13 +14,7 @@ type CreateUserReq struct {
 	PhoneNumber *string `json:"phone_number" validate:"omitempty,min=10,max=15,startswith=+"`
 }
 
-type CreateUserRes struct {
-	ID      uuid.UUID `json:"id"`
-	Vesrion int       `json:"version"`
-
-	FullName    string  `json:"full_name"`
-	PhoneNumber *string `json:"phone_number"`
-}
+type CreateUserRes UserDTOResponse
 
 func (h *UsersHTTPHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -43,18 +36,9 @@ func (h *UsersHTTPHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		resp.ErrorResponse(err, "failed to create User")
 	}
 
-	resp.JSONResponse(dtoFromDomain(user), http.StatusCreated)
+	resp.JSONResponse(CreateUserRes(userDTOFromDomain(user)), http.StatusCreated)
 }
 
 func domainFromDto(dto CreateUserReq) domain.User {
 	return domain.NewUserUninitialized(dto.FullName, dto.PhoneNumber)
-}
-
-func dtoFromDomain(user domain.User) CreateUserRes {
-	return CreateUserRes{
-		ID:          user.ID,
-		Vesrion:     user.Version,
-		FullName:    user.FullName,
-		PhoneNumber: user.PhoneNumber,
-	}
 }

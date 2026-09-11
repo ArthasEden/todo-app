@@ -8,10 +8,6 @@ import (
 	core_errors "github.com/ArthasEden/todo-app/internal/core/errors"
 )
 
-// User — доменная сущность пользователя.
-//
-// PhoneNumber — nil означает отсутствие номера (NULL в базе данных).
-// Version — счётчик для оптимистичной блокировки: см. Task.Version.
 type User struct {
 	ID      uuid.UUID
 	Version int
@@ -20,7 +16,6 @@ type User struct {
 	PhoneNumber *string
 }
 
-// NewUser — конструктор для восстановления пользователя по имеющему набору данных
 func NewUser(
 	id uuid.UUID,
 	version int,
@@ -35,8 +30,6 @@ func NewUser(
 	}
 }
 
-// CreateUser создаёт нового пользователя с автоматически сгенерированными
-// ID (UUID v4) и начальной версией 1.
 func CreateUser(
 	fullName string,
 	phoneNumber *string,
@@ -54,9 +47,6 @@ func CreateUser(
 	)
 }
 
-// Validate проверяет инварианты пользователя.
-// Формат телефона: начинается с «+», далее только цифры, длина 10–15 символов.
-// Пример: +79001234567
 func (u *User) Validate() error {
 	fullNameLen := len([]rune(u.FullName))
 	if fullNameLen < 3 || fullNameLen > 100 {
@@ -77,9 +67,6 @@ func (u *User) Validate() error {
 			)
 		}
 
-		// regexp.MustCompile паникует при невалидном паттерне — это допустимо,
-		// так как паттерн — константа, известная на этапе компиляции.
-		// В продакшн-коде регулярное выражение лучше вынести в переменную пакета.
 		re := regexp.MustCompile(`^\+[0-9]+$`)
 
 		if !re.MatchString(*u.PhoneNumber) {
@@ -93,15 +80,11 @@ func (u *User) Validate() error {
 	return nil
 }
 
-// UserPatch содержит изменения для частичного обновления пользователя (PATCH).
-// Каждое поле обёрнуто в Nullable, чтобы различать «не передано» и «передано null».
-// Подробнее о Nullable: см. internal/core/domain/nullable.go.
 type UserPatch struct {
 	FullName    Nullable[string]
 	PhoneNumber Nullable[string]
 }
 
-// NewUserPatch — конструктор UserPatch.
 func NewUserPatch(
 	fullName Nullable[string],
 	phoneNumber Nullable[string],
@@ -112,8 +95,6 @@ func NewUserPatch(
 	}
 }
 
-// Validate проверяет корректность патча до его применения.
-// FullName является обязательным полем и не может быть обнулён.
 func (p *UserPatch) Validate() error {
 	if p.FullName.Set && p.FullName.Value == nil {
 		return fmt.Errorf(
@@ -125,8 +106,6 @@ func (p *UserPatch) Validate() error {
 	return nil
 }
 
-// ApplyPatch применяет изменения к пользователю.
-// Используется та же техника «копия → изменение → валидация → замена», что и в Task.ApplyPatch.
 func (u *User) ApplyPatch(patch UserPatch) error {
 	if err := patch.Validate(); err != nil {
 		return fmt.Errorf("validate user patch: %w", err)

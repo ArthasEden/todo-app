@@ -24,6 +24,11 @@ type UserRepository interface {
 		ctx context.Context,
 		id uuid.UUID,
 	) error
+	PatchUser(
+		ctx context.Context,
+		id uuid.UUID,
+		user domain.User,
+	) (domain.User, error)
 }
 
 type UserService struct {

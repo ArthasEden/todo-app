@@ -8,7 +8,7 @@ import (
 	core_errors "github.com/ArthasEden/todo-app/internal/core/errors"
 )
 
-func GetIntPathValue(r *http.Request, key string) (uuid.UUID, error) {
+func GetUUIDPathValue(r *http.Request, key string) (uuid.UUID, error) {
 	pathValue := r.PathValue(key)
 	if pathValue == "" {
 		return uuid.Nil(), fmt.Errorf(

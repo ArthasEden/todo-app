@@ -10,8 +10,14 @@ import (
 
 func (s *UserService) CreateUser(
 	ctx context.Context,
-	user domain.User,
+	fullName string,
+	phoneNumber *string,
 ) (domain.User, error) {
+	user := domain.CreateUser(
+		fullName,
+		phoneNumber,
+	)
+
 	if err := user.Validate(); err != nil {
 		return domain.User{}, fmt.Errorf("Validate user domain: %w", err)
 	}

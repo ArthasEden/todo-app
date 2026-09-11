@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 
 	core_errors "github.com/ArthasEden/todo-app/internal/core/errors"
 	core_logger "github.com/ArthasEden/todo-app/internal/core/logger"
@@ -62,8 +63,11 @@ func (h *HTTPResponseHandler) NoContentReponse() {
 func (h *HTTPResponseHandler) PanicResponse(p any, msg string) {
 	statusCode := http.StatusInternalServerError
 	err := fmt.Errorf("unexpected panic: %v", p)
-
-	h.log.Error(msg, zap.Error(err))
+	h.log.Error(
+		msg,
+		zap.Error(err),
+		zap.ByteString("stack", debug.Stack()),
+	)
 	h.errorResponse(statusCode, err, msg)
 }
 

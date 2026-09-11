@@ -14,7 +14,11 @@ type UsersHTTPHandler struct {
 }
 
 type UserService interface {
-	CreateUser(ctx context.Context, user domain.User) (domain.User, error)
+	CreateUser(
+		ctx context.Context,
+		fullName string,
+		phoneNumber *string,
+	) (domain.User, error)
 	GetUsers(ctx context.Context, limit, offset *int) ([]domain.User, error)
 	GetUser(ctx context.Context, id uuid.UUID) (domain.User, error)
 	DelUser(ctx context.Context, id uuid.UUID) error

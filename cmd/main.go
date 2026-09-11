@@ -55,7 +55,9 @@ func main() {
 		core_http_middleware.Trace(),
 		core_http_middleware.Panic(),
 	)
-	apiVesrionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+	apiVesrionRouter := core_http_server.NewAPIVersionRouter(
+		core_http_server.ApiVersion1,
+		core_http_middleware.Dummy("api v2 middlware"))
 	apiVesrionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRouters(apiVesrionRouter)
 

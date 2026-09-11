@@ -1,0 +1,64 @@
+package users_transport_http
+
+import (
+	"context"
+	"net/http"
+	"uuid"
+
+	"github.com/ArthasEden/todo-app/internal/core/domain"
+	core_http_server "github.com/ArthasEden/todo-app/internal/core/transport/http/server"
+)
+
+type UsersHTTPHandler struct {
+	usersService UserService
+}
+
+type UserService interface {
+	CreateUser(
+		ctx context.Context,
+		fullName string,
+		phoneNumber *string,
+	) (domain.User, error)
+	GetUsers(ctx context.Context, limit, offset *int) ([]domain.User, error)
+	GetUser(ctx context.Context, id uuid.UUID) (domain.User, error)
+	DelUser(ctx context.Context, id uuid.UUID) error
+	PatchUser(ctx context.Context, id uuid.UUID, userPatch domain.UserPatch) (domain.User, error)
+}
+
+func NewUserHTTPHandler(
+	usersService UserService,
+) *UsersHTTPHandler {
+	return &UsersHTTPHandler{
+		usersService: usersService,
+	}
+}
+
+func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
+	return []core_http_server.Route{
+		{
+			Method:  http.MethodPost,
+			Path:    "/users",
+			Handler: h.CreateUser,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/users",
+			Handler: h.GetUsers,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/users/{id}",
+			Handler: h.GetUser,
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/users/{id}",
+			Handler: h.DelUser,
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/users/{id}",
+			Handler: h.PatchUser,
+		},
+	}
+}

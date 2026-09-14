@@ -1,0 +1,16 @@
+{
+    "sortedExplorer.orders": [
+        "cmd",
+        "internal",
+        "migrations",
+        "newtodoapp",
+        "out",
+        ".vscode",
+        "docker-compose.yaml",
+        "go.mod",
+        "Makefile",
+        ".env",
+        ".gitignore",
+        "README.md"
+    ]
+}

@@ -3,14 +3,18 @@
         "cmd",
         "internal",
         "migrations",
-        "newtodoapp",
         "out",
-        ".vscode",
         "docker-compose.yaml",
+        ".vscode",
         "go.mod",
         "Makefile",
         ".env",
         ".gitignore",
-        "README.md"
+        "README.md",
+        "internal/core/domain",
+        "internal/core/logger",
+        "internal/core/sentinels",
+        "internal/core/api",
+        "internal/core/repo"
     ]
 }

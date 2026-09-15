@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-var UnStatusCode = -1
+var UnInitStatusCode = -1
 
 type ResponseWriter struct {
 	http.ResponseWriter
@@ -16,7 +16,7 @@ type ResponseWriter struct {
 func NewResponseWriter(w http.ResponseWriter, log *slog.Logger) *ResponseWriter {
 	return &ResponseWriter{
 		ResponseWriter: w,
-		statusCode:     UnStatusCode,
+		statusCode:     UnInitStatusCode,
 		log:            log,
 	}
 }
@@ -29,7 +29,7 @@ func (w *ResponseWriter) WriteHeader(statusCode int) {
 }
 
 func (w *ResponseWriter) GetStatusCode() int {
-	if w.statusCode == UnStatusCode {
+	if w.statusCode == UnInitStatusCode {
 		return http.StatusOK
 	}
 

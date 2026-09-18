@@ -25,6 +25,9 @@
         "internal/core/api/response/writer.go",
         "internal/core/api/response/response.go",
         "internal/core/api/types",
-        "internal/core/repo"
+        "internal/core/repo",
+        "internal/core/repository/pgx",
+        "internal/core/repository/pool.go",
+        "internal/core/repository/sentinels.go"
     ]
 }

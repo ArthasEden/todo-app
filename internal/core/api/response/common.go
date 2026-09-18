@@ -9,11 +9,16 @@ import (
 	"todoapp/internal/core/sentinels"
 )
 
+// ErrorResponse — стандартная структура тела ответа при ошибке.
+//   - Error   — полный текст ошибки (цепочка от обработчика до причины)
+//   - Message — краткое человекочитаемое сообщение (что пытался сделать обработчик)
 type ErrorResponse struct {
 	Error   string `json:"error"   example:"full error text"`
 	Message string `json:"message" example:"short human-readable message"`
 }
 
+// JSONResponse сериализует responseBody в JSON и записывает в ответ с указанным статус-кодом.
+// Content-Type автоматически определяется json.NewEncoder.
 func (w *ResponseWriter) JSONResponse(response any, statusCode int) {
 	w.WriteHeader(statusCode)
 
@@ -22,10 +27,22 @@ func (w *ResponseWriter) JSONResponse(response any, statusCode int) {
 	}
 }
 
+// NoContentResponse отправляет HTTP 204 No Content — используется при успешном DELETE.
 func (w *ResponseWriter) NoContentResponse() {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// ErrorResponse транслирует core ошибку в HTTP-статус через errors.Is().
+//
+// Маппинг:
+//   - ErrInvalidArgument → 400
+//   - ErrNotFound        → 404
+//   - ErrConflict        → 409
+//   - остальное          → 500
+//
+// Каждый тип ошибки логируется на соответствующем уровне (Warn/Debug/Error)
+//
+// По сути формируем ErrorResponse для дальней отправки в JSONResponse()
 func (w *ResponseWriter) ErrorResponse(err error, msg string) {
 	var (
 		statusCode int
@@ -59,6 +76,10 @@ func (w *ResponseWriter) ErrorResponse(err error, msg string) {
 	w.JSONResponse(response, statusCode)
 }
 
+// PanicResponse формирует HTTP 500 при перехвате паники.
+// Вызывается из middleware Panic — см. internal/core/transport/http/middleware/common.go.
+//
+// По сути формируем ErrorResponse для дальней отправки в JSONResponse()
 func (w *ResponseWriter) PanicResponse(p any, msg string) {
 	statusCode := http.StatusInternalServerError
 	err := fmt.Errorf("unexpected panic: %v", p)

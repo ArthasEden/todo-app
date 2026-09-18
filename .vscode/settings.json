@@ -15,6 +15,16 @@
         "internal/core/logger",
         "internal/core/sentinels",
         "internal/core/api",
+        "internal/core/api/server",
+        "internal/core/api/middleware",
+        "internal/core/api/middleware/middleware.go",
+        "internal/core/api/middleware/common.go",
+        "internal/core/api/middleware/dummy.go",
+        "internal/core/api/request",
+        "internal/core/api/response",
+        "internal/core/api/response/writer.go",
+        "internal/core/api/response/response.go",
+        "internal/core/api/types",
         "internal/core/repo"
     ]
 }

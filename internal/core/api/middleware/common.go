@@ -11,6 +11,10 @@ import (
 
 const reqIDHeader = "X-Request-ID"
 
+// RequestID — middleware, обеспечивающий каждый запрос уникальным идентификатором.
+// Если клиент передаёт X-Request-ID — используем его (полезно для распределённой трассировки).
+// Иначе генерируем новый X-Request-ID.
+// Идентификатор добавляется и в заголовок ответа, чтобы клиент мог его использовать.
 func RequestID() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -28,6 +32,11 @@ func RequestID() Middleware {
 	}
 }
 
+// Logger — middleware, кладущий логгер в контекст запроса.
+// Обогащает логгер полями request_id и url, чтобы все последующие
+// обработчики автоматически логировали эти поля.
+//
+// Важно: этот middleware должен идти ПОСЛЕ RequestID, чтобы request_id уже был доступен.
 func Logger(log *slog.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +55,9 @@ func Logger(log *slog.Logger) Middleware {
 	}
 }
 
+// Trace — middleware для логирования входящих запросов и времени их обработки.
+// Использует ResponseWriter-обёртку, чтобы перехватить статус-код ответа,
+// который иначе недоступен после вызова WriteHeader.
 func Trace() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +82,11 @@ func Trace() Middleware {
 	}
 }
 
+// Panic — middleware для перехвата паник и возврата HTTP 500.
+// Без этого middleware паника в обработчике уронила бы всю горутину,
+// а стандартная библиотека Go вернула бы пустой ответ клиенту.
+//
+// Использует defer + recover — стандартный паттерн обработки паник в Go.
 func Panic() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

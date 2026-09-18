@@ -1,0 +1,30 @@
+{
+    "sortedExplorer.orders": [
+        "internal/features/users/api",
+        "internal/features/users/svc",
+        "internal/features/users/svc/svc.go",
+        "internal/features/users/svc/createUser.go",
+        "internal/features/users/svc/delUser.go",
+        "internal/features/users/svc/getUser.go",
+        "internal/features/users/svc/getUsers.go",
+        "internal/features/users/svc/patchUser.go",
+        "internal/features/users/repo",
+        "internal/features/tasks/api",
+        "internal/features/tasks/svc",
+        "internal/features/tasks/repo",
+        "internal/features/users/api/http/api.go",
+        "internal/features/users/api/http/dtoCommon.go",
+        "internal/features/users/api/http/createUser.go",
+        "internal/features/users/api/http/delUser.go",
+        "internal/features/users/api/http/getUser.go",
+        "internal/features/users/api/http/getUsers.go",
+        "internal/features/users/api/http/patchUser.go",
+        "internal/features/users/repo/postgres/repo.go",
+        "internal/features/users/repo/postgres/createUser.go",
+        "internal/features/users/repo/postgres/delUser.go",
+        "internal/features/users/repo/postgres/getUser.go",
+        "internal/features/users/repo/postgres/getUsers.go",
+        "internal/features/users/repo/postgres/models.go",
+        "internal/features/users/repo/postgres/patchUser.go"
+    ]
+}

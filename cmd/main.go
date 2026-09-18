@@ -11,9 +11,9 @@ import (
 	core_pgx_pool "github.com/ArthasEden/todo-app/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/ArthasEden/todo-app/internal/core/transport/http/middleware"
 	core_http_server "github.com/ArthasEden/todo-app/internal/core/transport/http/server"
-	users_postgres_repository "github.com/ArthasEden/todo-app/internal/features/users/repository/postgres"
-	users_service "github.com/ArthasEden/todo-app/internal/features/users/service"
-	users_transport_http "github.com/ArthasEden/todo-app/internal/features/users/transport/http"
+	users_transport_http "github.com/ArthasEden/todo-app/internal/features/users/api/http"
+	users_postgres_repository "github.com/ArthasEden/todo-app/internal/features/users/repo/postgres"
+	users_service "github.com/ArthasEden/todo-app/internal/features/users/svc"
 	"go.uber.org/zap"
 )
 
